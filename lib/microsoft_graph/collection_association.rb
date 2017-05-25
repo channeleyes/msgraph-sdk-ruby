@@ -4,14 +4,14 @@ class MicrosoftGraph
     attr_reader :parent
 
     def initialize(options = {})
-      @type            = options[:type]
-      @graph           = options[:graph]
-      @resource_name   = options[:resource_name]
-      @parent          = options[:parent]
-      @order_by        = options[:order_by]
-      @filter          = options[:filter]
-      @dirty           = false
-      @loaded          = false
+      @type = options[:type]
+      @graph = options[:graph]
+      @resource_name = options[:resource_name]
+      @parent = options[:parent]
+      @order_by = options[:order_by]
+      @filter = options[:filter]
+      @dirty = false
+      @loaded = false
       @internal_values = []
 
       raise MicrosoftGraph::TypeError.new("A collection cannot be both ordered and filtered.") if @order_by && @filter
@@ -21,7 +21,7 @@ class MicrosoftGraph
         unless valid_nested_property(field_names, @type)
           raise MicrosoftGraph::TypeError.new("Tried to order by invalid field: #{field_name}")
         end
-        if direction && ! %w(asc desc).include?(direction)
+        if direction && !%w(asc desc).include?(direction)
           raise MicrosoftGraph::TypeError.new("Tried to order field #{field_name} by invalid direction: #{direction}")
         end
       end
@@ -36,16 +36,16 @@ class MicrosoftGraph
     def find(id)
       if response = graph.service.get("#{path}/#{URI.escape(id.to_s)}")
         klass = if member_type = specified_member_type(response)
-          ClassBuilder.get_namespaced_class(response)
-        else
-          default_member_class
-        end
+                  ClassBuilder.get_namespaced_class(response)
+                else
+                  default_member_class
+                end
         klass.new(
             graph: graph,
             parent: self,
             attributes: response[:attributes],
             persisted: true
-          )
+        )
       else
         nil
       end
@@ -64,23 +64,23 @@ class MicrosoftGraph
         order_by_names = @order_by.map do |field|
           URI.escape OData.convert_to_camel_case(field)
         end
-        "#{path}?$orderby=#{order_by_names.join(',')}"
+        "#{path}?$orderby=#{order_by_names.join(',')}&$count=true"
       elsif @filter
         escaped_filters = URI.escape(stringify_filters(@filter))
-        "#{path}?$filter=#{escaped_filters}"
+        "#{path}?$filter=#{escaped_filters}&$count=true"
       else
-        path
+        "#{path}?$count=true"
       end
     end
 
     def order_by(*fields)
       self.class.new(
-        type: @type,
-        graph: @graph,
-        resource_name: @resource_name,
-        parent: @parent,
-        order_by: fields,
-        filter: @filter
+          type: @type,
+          graph: @graph,
+          resource_name: @resource_name,
+          parent: @parent,
+          order_by: fields,
+          filter: @filter
       )
     end
 
@@ -98,12 +98,12 @@ class MicrosoftGraph
 
     def filter(new_filters)
       self.class.new(
-        type: @type,
-        graph: @graph,
-        resource_name: @resource_name,
-        parent: @parent,
-        order_by: @order_by,
-        filter: merge_with_existing_filter(new_filters)
+          type: @type,
+          graph: @graph,
+          resource_name: @resource_name,
+          parent: @parent,
+          order_by: @order_by,
+          filter: merge_with_existing_filter(new_filters)
       )
     end
 
@@ -118,7 +118,7 @@ class MicrosoftGraph
 
     def stringify_filters(filters)
       if filters.respond_to?(:keys)
-        filter_strings = filters.map do |k,v|
+        filter_strings = filters.map do |k, v|
           v = v.is_a?(String) ? "'#{v}'" : v
           "#{OData.convert_to_camel_case(k)} eq #{v}"
         end
@@ -138,15 +138,15 @@ class MicrosoftGraph
 
     def build(attributes = {})
       ClassBuilder
-        .get_namespaced_class(type.member_type.name)
-        .new(
-          graph:         graph,
-          resource_name: @resource_name,
-          parent:        self,
-          attributes:    attributes,
-        ).tap { |new_member|
-          @internal_values << new_member
-        }
+          .get_namespaced_class(type.member_type.name)
+          .new(
+              graph: graph,
+              resource_name: @resource_name,
+              parent: self,
+              attributes: attributes,
+          ).tap { |new_member|
+        @internal_values << new_member
+      }
     end
 
     def <<(new_member)
@@ -211,11 +211,11 @@ class MicrosoftGraph
 
       result[:attributes]['value'].each do |entity_hash|
         klass =
-          if member_type = specified_member_type(entity_hash)
-            ClassBuilder.get_namespaced_class(member_type.name)
-          else
-            default_member_class
-          end
+            if member_type = specified_member_type(entity_hash)
+              ClassBuilder.get_namespaced_class(member_type.name)
+            else
+              default_member_class
+            end
         @internal_values.push klass.new(attributes: entity_hash, parent: self, persisted: true)
       end
       @loaded = @next_link.nil?
