@@ -6,11 +6,11 @@ require 'microsoft_graph/version'
 Gem::Specification.new do |spec|
   spec.name          = "microsoft_graph"
   spec.version       = MicrosoftGraph::VERSION
-  gem.authors        = ["Charlie"]
-  gem.email          = ["charlie@channeleyes.com"]
+  spec.authors        = ["Charlie"]
+  spec.email          = ["charlie@channeleyes.com"]
 
   spec.summary       = "Ruby SDK for Microsoft Graph"
-  gem.homepage       = "https://github.com/channeleyes/msgraph-sdk-ruby"
+  spec.homepage       = "https://github.com/channeleyes/msgraph-sdk-ruby"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = "exe"
